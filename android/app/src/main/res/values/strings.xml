@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Rubito</string>
+    <string name="title_activity_main">Rubito</string>
+    <string name="package_name">com.rubito.jp</string>
+    <string name="custom_url_scheme">com.rubito.jp</string>
+</resources>

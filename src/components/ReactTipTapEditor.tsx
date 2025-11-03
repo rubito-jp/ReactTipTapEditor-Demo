@@ -50,7 +50,9 @@ import "katex/dist/katex.min.css";
 import "easydrawer/styles.css";
 import "react-image-crop/dist/ReactCrop.css";
 import "@excalidraw/excalidraw/index.css";
-
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FileUp } from 'lucide-react';
 const extensions = [
   BaseKit.configure({
     placeholder: {
@@ -116,29 +118,59 @@ function debounce(func: any, wait: number) {
 
 export function ReactTipTapEditor() {
   const [content, setContent] = useState(DEFAULT);
-  const [disable, setDisable] = useState(false);
+   const [isPublishing, setIsPublishing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   const onValueChange = useCallback(
     debounce((value: any) => {
       setContent(value);
+      setHasChanges(true);  
     }, 300),
     []
   );
 
+  async function handleSaveContentToDatabase() {
+    if (isPublishing) return;
+    setIsPublishing(true);
+    console.log("Publishing content:", content);
+    // simulate network delay
+    await new Promise((r) => setTimeout(r, 1500));
+    setIsPublishing(false);
+    setHasChanges(false); // disable button until next change
+  }
+ 
   return (
-    <>
-      <button onClick={() => setDisable(!disable)}>
-        {disable ? "Editable" : "Readonly"}
-      </button>
+    <> 
+<div className="  py-10">
+ 
+  <Tabs defaultValue="editor" className=" ">
+    <div className="flex justify-between">
+        <TabsList>
+    <TabsTrigger value="editor">Editor</TabsTrigger>
+    <TabsTrigger value="preview">Preview</TabsTrigger>
+  </TabsList>
+  <Button
+            onClick={handleSaveContentToDatabase}
+            disabled={isPublishing || !hasChanges}
+            className={`text-sm ${
+              isPublishing || !hasChanges
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
+            }`}
+          >
+            <FileUp className="mr-1 h-4 w-4" />
+            {isPublishing ? "Publishing..." : "Publish"}
+          </Button>
+    </div>
 
-      <RichTextEditor
+  <TabsContent value="editor"> <RichTextEditor
         //@ts-ignore
         output="html"
         content={content as any}
         onChangeContent={onValueChange}
         extensions={extensions}
         dark={false}
-        disabled={disable}
+        disabled={false}
         bubbleMenu={{
           //@ts-ignore
           render({ extensionsNames, editor, disabled }, bubbleDefaultDom) {
@@ -185,15 +217,20 @@ export function ReactTipTapEditor() {
             );
           },
         }}
-      />
-
-      {typeof content === "string" && (
+      /></TabsContent>
+  <TabsContent value="preview">{typeof content === "string" && (
         <div
           className="prose prose-neutral dark:prose-invert max-w-none mt-6 p-4 rounded-md border border-gray-200 bg-white
               prose-img:mx-auto prose-img:block"
           dangerouslySetInnerHTML={{ __html: content }}
         />
-      )}
+      )}</TabsContent>
+</Tabs>
+ 
+
+      
+</div>
+    
     </>
   );
 }
